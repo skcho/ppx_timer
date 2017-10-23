@@ -1,0 +1,8 @@
+(jbuild_version 1)
+
+(library
+ ((name ppx_timer)
+  (public_name ppx_timer)
+  (kind ppx_rewriter)
+  (libraries (timer ppx_core ppx_driver))
+  (preprocess no_preprocessing)))

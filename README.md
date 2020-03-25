@@ -13,7 +13,7 @@ opam pin add ppx_timer https://github.com/skcho/ppx_timer.git
 `[%timer exp]` is expanded to
 
 ```ocaml
-Timer.start_here [%here];
+Timer.start_here <pos:Lexing.position>;
 let v = exp in
 Timer.stop ();
 v

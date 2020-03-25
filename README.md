@@ -1,14 +1,14 @@
 # ppx_timer
 
-ppx for [timer](https://github.com/skcho/timer)
+Ppx for [timer](https://github.com/skcho/timer)
 
-## install
+## Install
 
 ```
 opam pin add ppx_timer https://github.com/skcho/ppx_timer.git
 ```
 
-## example
+## Example
 
 `[%timer exp]` is expanded to
 
@@ -18,6 +18,5 @@ let v = exp in
 Timer.stop ();
 v
 ```
-to calculate the evaluation time of exp.
 
-See [test.ml](test/test.ml) for examples.
+to calculate the evaluation time of exp.  See [test](test/ppx_timer_test.ml) for examples.

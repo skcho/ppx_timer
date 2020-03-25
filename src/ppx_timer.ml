@@ -1,41 +1,25 @@
-open Ppx_core
-open Ast_helper
-open Ast_pattern
-open Asttypes
+open Ppxlib
 
-let lift_position ~loc p =
-  let lid_of s = {txt= Longident.parse ("Lexing."^s); loc} in
-  let str_of s = Exp.constant (Pconst_string (s, None)) in
-  let int_of i = Exp.constant (Pconst_integer (Caml.string_of_int i, None)) in
-  Exp.record
-    [ (lid_of "pos_fname", str_of p.pos_fname)
-    ; (lid_of "pos_lnum", int_of p.pos_lnum)
-    ; (lid_of "pos_bol", int_of p.pos_bol)
-    ; (lid_of "pos_cnum", int_of p.pos_cnum) ]
-    None
+let expander ~loc ~path:_ e =
+  let str_of s = Ast_builder.Default.estring ~loc s in
+  let int_of i = Ast_builder.Default.eint ~loc i in
+  let p = loc.loc_start in
+  [%expr
+    Timer.start_here
+      {
+        pos_fname = [%e str_of p.pos_fname];
+        pos_lnum = [%e int_of p.pos_lnum];
+        pos_bol = [%e int_of p.pos_bol];
+        pos_cnum = [%e int_of p.pos_cnum];
+      };
+    let __timer_v = [%e e] in
+    Timer.stop ();
+    __timer_v]
 
-let lift_location ~loc = lift_position ~loc loc.loc_start
+let timer_rule =
+  Context_free.Rule.extension
+  @@ Extension.declare "timer" Extension.Context.expression
+       Ast_pattern.(single_expr_payload __)
+       expander
 
-let timer_start ~loc =
-  Exp.apply
-    (Exp.ident {txt= Longident.parse "Timer.start_here"; loc})
-    [(Nolabel, lift_location ~loc)]
-
-
-let timer_stop ~loc =
-  Exp.apply
-    (Exp.ident {txt= Longident.parse "Timer.stop"; loc})
-    [(Nolabel, Exp.construct {txt= Longident.parse "()"; loc} None)]
-
-
-let timer =
-  Extension.declare "timer" Extension.Context.expression
-    Ast_pattern.(pstr (pstr_eval __ nil ^:: nil)) (fun ~loc ~path:_ x ->
-      Exp.sequence (timer_start ~loc)
-        (Exp.let_ Nonrecursive
-           [Vb.mk (Pat.var {txt= "__timer_v"; loc}) x]
-           (Exp.sequence (timer_stop ~loc)
-              (Exp.ident {txt= Longident.parse "__timer_v"; loc}))) )
-
-
-let () = Ppx_driver.register_transformation "timer" ~extensions:[timer]
+let () = Driver.register_transformation "timer" ~rules:[ timer_rule ]

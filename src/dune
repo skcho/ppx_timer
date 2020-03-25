@@ -1,5 +1,6 @@
 (library
  (name ppx_timer)
+ (public_name ppx_timer)
  (kind ppx_rewriter)
  (libraries ppxlib)
  (preprocess (pps ppxlib.metaquot)))
